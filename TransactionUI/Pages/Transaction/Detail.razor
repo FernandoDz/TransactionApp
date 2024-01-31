@@ -1,0 +1,69 @@
+﻿@page "/creditcard/transaction/{id:int}"
+@using Models
+@using Services
+@inject IPurchaseInfoService PurchaseInfoService
+@inject IPaymentInfoService PaymentInfoService
+<MudText style="margin:10px;">Detalle de compras realizadas</MudText>
+
+<MudTable style="margin:10px;" Items="@purchasesInfo" Dense="true" Hover="true" Bordered="true" Striped="true">
+
+    <HeaderContent>
+        <MudTh>Cliente</MudTh>
+        <MudTh>Numero de Tarjeta</MudTh>
+        <MudTh>Numero de autorizacion</MudTh>
+        <MudTh>Fecha</MudTh>
+        <MudTh>Description</MudTh>
+          <MudTh>Cargo</MudTh>
+       
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Client">@context.ClientId</MudTd>
+        <MudTd DataLabel="CardNumber">@context.CardNumber</MudTd>
+        <MudTd DataLabel="AuthorizationNumber">@context.AuthorizationNumber</MudTd>
+         <MudTd DataLabel="Date">@context.Date</MudTd>
+         <MudTd DataLabel="Description">@context.Description</MudTd>
+         <MudTd DataLabel="Charge">@context.Charge</MudTd>
+       
+
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+<MudText style="margin:10px;">Detalle de pago realizados</MudText>
+<MudTable style="margin:10px;" Items="@paymentsInfo" Dense="true" Hover="true" Bordered="true" Striped="true">
+
+    <HeaderContent>
+        <MudTh>Cliente</MudTh>
+        <MudTh>Numero de tarjeta</MudTh>
+        <MudTh>Fecha</MudTh>
+        <MudTh>Descripcion</MudTh>
+        <MudTh>Pago</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Client">@context.ClientId</MudTd>
+        <MudTd DataLabel="Client">@context.CardNumber</MudTd>
+        <MudTd DataLabel="Client">@context.Date</MudTd>
+        <MudTd DataLabel="Client">@context.Description</MudTd>
+        <MudTd DataLabel="Client">@context.Payment</MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private PurchaseInfo purchaseinfo = new PurchaseInfo();
+    IEnumerable<PurchaseInfo> purchasesInfo = new List<PurchaseInfo>();
+    private PaymentInfo paymentinfo = new PaymentInfo();
+    IEnumerable<PaymentInfo> paymentsInfo = new List<PaymentInfo>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        purchasesInfo = await PurchaseInfoService.GetById(id);
+        paymentsInfo = await PaymentInfoService.GetById(id);
+    }
+}

@@ -1,0 +1,69 @@
+﻿
+@page "/purchase/new"
+@using Models
+@using Services
+@inject IPurchaseService PurchaseService
+@inject NavigationManager NavigationManager
+
+<MudText style="margin:10px;">Nueva compra</MudText>
+
+<MudGrid>
+    <MudItem xs="12" sm="7">
+        <MudPaper Class="pa-4">
+            <EditForm Model="purchase" OnValidSubmit="OnValidSubmit">
+                <DataAnnotationsValidator />
+                <MudCard>
+                    <MudCardContent>
+
+                        <MudTextField Label="Cliente" @bind-Value="purchase.ClientId" For="@(() => purchase.ClientId)" />
+                        <MudTextField Label="Número de Tarjeta" @bind-Value="purchase.CardNumber" For="@(() => purchase.CardNumber)" />
+                        <MudTextField Label="Fecha de Compra" @bind-Value="purchase.PurchaseDate" For="@(() => purchase.PurchaseDate)" />
+                        <MudTextField Label="Descripción" @bind-Value="purchase.Description" For="@(() => purchase.Description)" />
+                        <MudNumericField  Format="0.00" Label="Monto" @bind-Value="purchase.Amount" For="@(() => purchase.Amount)" />
+                        <MudTextField Label="Número de Autorización" @bind-Value="purchase.AuthorizationNumber" For="@(() => purchase.AuthorizationNumber)" />
+                        <MudTextField Label="Mes" @bind-Value="purchase.Month" For="@(() => purchase.Month)" />
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Guardar</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </EditForm>
+            @if (showLeaveAlert)
+            {
+                <MudAlert Severity="Severity.Error" ContentAlignment="HorizontalAlignment.Center" ShowCloseIcon="true" CloseIconClicked="(() => CloseMe(true))">No se pudo guardar.</MudAlert>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private bool showLeaveAlert = false;
+    private Purchase purchase = new Purchase();
+
+    private async Task OnValidSubmit(EditContext context)
+    {
+        await save();
+    }
+
+    private async Task save()
+    {
+        var success = await PurchaseService.CreatePurchase(purchase);
+
+        if (success)
+        {
+
+            var clientId = purchase.ClientId;
+
+            NavigationManager.NavigateTo($"/Statement/detail/{clientId}");
+        }
+        else
+        {
+            showLeaveAlert = true;
+        }
+    }
+
+    private void CloseMe(bool value)
+    {
+        showLeaveAlert = false;
+    }
+}

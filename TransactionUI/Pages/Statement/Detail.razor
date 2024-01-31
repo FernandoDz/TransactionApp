@@ -1,0 +1,94 @@
+﻿﻿﻿
+@page "/creditcard/statement/{id:int}"
+@using Models
+@using Services
+@inject IStatementService StatementService
+@inject IPurchaseService PurchaseService
+@inject IPaymentService PaymentService
+<MudText style="margin:10px;" >Estado de Cuenta</MudText>
+
+<MudTable style="margin:10px;" Items="@statements" Dense="true" Hover="true" Bordered="true" Striped="true">
+    
+    <HeaderContent>
+        <MudTh>Cliente</MudTh>
+        <MudTh>Numero de Tarjeta</MudTh>
+        <MudTh>Saldo actual</MudTh>
+        <MudTh> Límite de crédito</MudTh>
+        <MudTh> Interes Bonificable</MudTh>
+        <MudTh> Saldo Disponible</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Client">@context.ClientId</MudTd>
+        <MudTd DataLabel="CardNumber">@context.CardNumber</MudTd>
+        <MudTd DataLabel="CurrentBalance">@context.CurrentBalance</MudTd>
+        <MudTd DataLabel="CreditLimit">@context.CreditLimit</MudTd>
+        <MudTd DataLabel="Bonifiable">@context.BonifiableInterest</MudTd>
+        <MudTd DataLabel="Available">@context.AvailableBalance</MudTd>
+       
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+<MudText style="margin:10px;">Compras realizadas</MudText>
+<MudTable style="margin:10px;" Items="@purchases" Dense="true" Hover="true" Bordered="true" Striped="true">
+
+    <HeaderContent>
+        <MudTh>Cliente</MudTh>
+        <MudTh>Fecha de Compra</MudTh>
+        <MudTh>Descripción</MudTh>
+        <MudTh> Monto</MudTh>
+        <MudTh> Numero de autorización</MudTh>
+        <MudTh> Mes</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Client">@context.ClientId</MudTd>
+        <MudTd DataLabel="PurchaseDate">@context.PurchaseDate</MudTd>
+        <MudTd DataLabel="Description">@context.Description</MudTd>
+        <MudTd DataLabel="Amount">@context.Amount</MudTd>
+        <MudTd DataLabel="AuthorizationNumber">@context.AuthorizationNumber</MudTd>
+        <MudTd DataLabel="Month">@context.Month</MudTd>
+
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+<MudText style="margin:10px;">Pagos realizados</MudText>
+<MudTable style="margin:10px;" Items="@payments" Dense="true" Hover="true" Bordered="true" Striped="true">
+
+    <HeaderContent>
+        <MudTh>Cliente</MudTh>
+        <MudTh>Fecha de Pago</MudTh>
+        <MudTh>Numero de Tarjeta</MudTh>
+        <MudTh> Monto</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Client">@context.ClientId</MudTd>
+        <MudTd DataLabel="PaymentDate">@context.PaymentDate</MudTd>
+        <MudTd DataLabel="CardNumber">@context.CardNumber</MudTd>
+        <MudTd DataLabel="Amount">@context.Amount</MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+    private Statement statement = new Statement();
+    IEnumerable<Statement> statements = new List<Statement>();
+    private Purchase purchase = new Purchase();
+    IEnumerable<Purchase> purchases = new List<Purchase>();
+    private Payment payment = new Payment();
+    IEnumerable<Payment> payments = new List<Payment>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        statements = await StatementService.GetById(id);
+        purchases = await PurchaseService.GetById(id);
+        payments = await PaymentService.GetById(id);
+    }
+}

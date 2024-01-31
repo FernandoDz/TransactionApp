@@ -1,0 +1,65 @@
+﻿
+@page "/payment/new"
+@using Models
+@using Services
+@inject IPaymentService PaymentService
+@inject NavigationManager NavigationManager
+
+<MudText style="margin:10px;">Nueva pago</MudText>
+
+<MudGrid>
+    <MudItem xs="12" sm="7">
+        <MudPaper Class="pa-4">
+            <EditForm Model="payment" OnValidSubmit="OnValidSubmit">
+                <DataAnnotationsValidator />
+                <MudCard>
+                    <MudCardContent>
+
+                        <MudTextField Label="Cliente" @bind-Value="payment.ClientId" For="@(() => payment.ClientId)" />
+                        <MudTextField Label="Número de Tarjeta" @bind-Value="payment.CardNumber" For="@(() => payment.CardNumber)" />
+                        <MudNumericField Format="0.00" Label="Monto" @bind-Value="payment.Amount" For="@(() => payment.Amount)" />
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Guardar</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </EditForm>
+            @if (showLeaveAlert)
+            {
+                <MudAlert Severity="Severity.Error" ContentAlignment="HorizontalAlignment.Center" ShowCloseIcon="true" CloseIconClicked="(() => CloseMe(true))">No se pudo guardar.</MudAlert>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private bool showLeaveAlert = false;
+    private Payment payment = new Payment();
+
+    private async Task OnValidSubmit(EditContext context)
+    {
+        await save();
+    }
+
+    private async Task save()
+    {
+        var success = await PaymentService.CreatePayment(payment);
+
+        if (success)
+        {
+
+            var clientId = payment.ClientId;
+
+            NavigationManager.NavigateTo($"/Statement/detail/{clientId}");
+        }
+        else
+        {
+            showLeaveAlert = true;
+        }
+    }
+
+    private void CloseMe(bool value)
+    {
+        showLeaveAlert = false;
+    }
+}

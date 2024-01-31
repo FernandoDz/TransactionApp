@@ -1,0 +1,120 @@
+﻿﻿
+@page "/creditcard/index"
+@inject HttpClient httpClient
+@using Models
+@using Services
+@inject ICreditCardService CreditCardService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+<MudText style="margin:10px;" >Lista de Tarjetas</MudText>
+
+<MudTable style="margin:10px;" Items="@cards" Dense="true" Hover="true" Bordered="true" Striped="true">
+    <ToolBarContent>
+        <MudSpacer />
+         <MudIconButton Icon="@Icons.Material.Filled.Search" Edge="Edge.Start" OnClick="Search" Style="margin-top:5px" />
+         <MudTextField @bind-Value="searchText" Placeholder="Search" Adornment="Adornment.Start" @onkeydown="HandleKeyPress"></MudTextField> 
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Cliente</MudTh>
+        <MudTh>Numero de Tarjeta</MudTh>
+        <MudTh>Nombre</MudTh>
+        <MudTh>Apellido</MudTh>
+        <MudTh>Acciones</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Nombre">@context.ClientId</MudTd>
+        <MudTd DataLabel="Nombre">@context.Number</MudTd>
+        <MudTd DataLabel="Nombre">@context.HolderFirstName</MudTd>
+        <MudTd DataLabel="Nombre">@context.HolderLastName</MudTd>
+        <MudTd>
+            <MudButton Href="@($"/creditcard/statement/{context.Id}")" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Success"
+                       Class="text-center">Estado de Cuenta</MudButton>
+            <MudButton OnClick="(() => goAdd(ActionType.RegistrarCompra))" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary"
+                       Class="text-center">Registrar Compra</MudButton>
+            <MudButton OnClick="(() => goAdd(ActionType.RegistrarPago))" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Secondary"
+                       Class="text-center">Registrar Pago</MudButton>
+            <MudButton Href="@($"/creditcard/transaction/{context.Id}")" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default"
+                       Class="text-center">Transacciones</MudButton>
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+@code {
+    private IEnumerable<CreditCard> cards = new List<CreditCard>();
+    private string searchText = "";
+    private CreditCard card = new CreditCard();
+
+    public enum ActionType
+    {
+
+        RegistrarCompra,
+        RegistrarPago
+    }
+    protected override async Task OnInitializedAsync()
+    {
+
+        cards = await CreditCardService.GetAllCreditCards();
+    }
+
+    private async Task Search()
+    {
+        try
+        {
+            var content = new StringContent(JsonSerializer.Serialize(card), System.Text.Encoding.UTF8, "application/json");
+
+            var httpResponse = await httpClient.PostAsync($"CreditCard/Search?cardNumber={searchText}", content);
+
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                var respString = await httpResponse.Content.ReadAsStringAsync();
+                var response = JsonSerializer.Deserialize<CreditCardResponse>(respString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (response != null && response.Response != null && response.Response.Any())
+                {
+                    cards = response.Response;
+                }
+                else
+                {
+                    cards = new List<CreditCard>();
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Error en la solicitud: {httpResponse.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+    private void goAdd(ActionType actionType)
+    {
+        switch (actionType)
+        {
+
+            case ActionType.RegistrarCompra:
+                NavigationManager.NavigateTo("purchase/new");
+                break;
+            case ActionType.RegistrarPago:
+                NavigationManager.NavigateTo("payment/new");
+                break;
+            
+            default:
+                break;
+        }
+    }
+
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await Search();
+        }
+    }
+}
+
+

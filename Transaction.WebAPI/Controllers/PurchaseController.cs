@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using System.Data;
+﻿using FluentValidation.Results;
+using Microsoft.AspNetCore.Mvc;
 using Transaction.WebAPI.Models;
+using Transaction.WebAPI.Services;
 
 namespace Transaction.WebAPI.Controllers
 {
@@ -10,83 +10,50 @@ namespace Transaction.WebAPI.Controllers
     public class PurchaseController : Controller
     {
         private readonly string CadenaSQL;
+        private readonly PurchaseService _purchaseService;
+        private readonly PurchaseValidator _purchaseValidator;
 
-        public PurchaseController(IConfiguration configuration)
+        public PurchaseController(IConfiguration configuration, PurchaseService purchaseService, PurchaseValidator purchaseValidator)
         {
             CadenaSQL = configuration.GetConnectionString("CadenaSQL");
-
+            _purchaseService = purchaseService;
+            _purchaseValidator = purchaseValidator;
         }
 
         [HttpPost]
         [Route("Create")]
-        public IActionResult Create([FromBody] Purchase objeto)
+        public IActionResult Create([FromBody] Purchase purchase)
         {
-            try
+            ValidationResult validationResult = _purchaseValidator.Validate(purchase);
+            if (!validationResult.IsValid)
             {
-                using (var conexion = new SqlConnection(CadenaSQL))
-                {
-                    conexion.Open();
-
-                    var cmd = new SqlCommand("sp_RegisterPurchase", conexion);
-                    cmd.Parameters.AddWithValue("ClientId", objeto.ClientId);
-                    cmd.Parameters.AddWithValue("CardNumber", objeto.CardNumber);
-                    cmd.Parameters.AddWithValue("PurchaseDate", objeto.PurchaseDate);
-                    cmd.Parameters.AddWithValue("Description", objeto.Description);
-                    cmd.Parameters.AddWithValue("Amount", objeto.Amount);
-                    cmd.Parameters.AddWithValue("AuthorizationNumber", objeto.AuthorizationNumber);
-                    cmd.Parameters.AddWithValue("Month", objeto.Month);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.ExecuteNonQuery();
-                }
-                return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok" });
+                return BadRequest(validationResult.Errors);
             }
 
+            try
+            {
+                _purchaseService.RegisterPurchase(purchase);
+                return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok" });
+            }
             catch (Exception error)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new { mensaje = error.Message });
             }
         }
+
         [HttpGet]
         [Route("Get/{ClientId:int}")]
         public IActionResult GetById(int ClientId)
         {
-            List<Purchase> list = new List<Purchase>();
+            List<Purchase> purchases = _purchaseService.GetPurchasesByClientId(ClientId);
 
-            try
+            if (purchases.Count > 0)
             {
-                using (var conexion = new SqlConnection(CadenaSQL))
-                {
-                    conexion.Open();
-
-                    var cmd = new SqlCommand("usp_GetPurchaseByClientId", conexion);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@ClientId", SqlDbType.Int));
-                    cmd.Parameters["@ClientId"].Value = ClientId;
-
-                    using (var rd = cmd.ExecuteReader())
-                    {
-                        while (rd.Read())
-                        {
-                            list.Add(new Purchase
-                            {
-                                Id = Convert.ToInt32(rd["Id"]),
-                                ClientId = Convert.ToInt32(rd["ClientId"]),
-                                PurchaseDate = (rd["PurchaseDate"].ToString()),
-                                Description = rd["Description"].ToString(),
-                                Amount = Convert.ToDecimal(rd["Amount"]),
-                                AuthorizationNumber = rd["AuthorizationNumber"].ToString(),
-                                Month = rd["Month"].ToString()
-
-                            });
-                        }
-                    }
-                }
-
-                return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok", response = list });
+                return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok", response = purchases });
             }
-            catch (Exception error)
+            else
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { mensaje = error.Message, response = list });
+                return StatusCode(StatusCodes.Status204NoContent, new { mensaje = "No se encontraron compras para el cliente proporcionado", response = purchases });
             }
         }
     }

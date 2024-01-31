@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentValidation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,5 +19,15 @@ namespace Transaction.WebAPI.Models
             PaymentDate = DateTime.Now;
         }
     }
-    
+    public class PaymentValidator : AbstractValidator<Payment>
+    {
+        public PaymentValidator()
+        {
+            RuleFor(payment => payment.ClientId).NotEmpty();
+            RuleFor(payment => payment.CardNumber).NotEmpty().CreditCard();
+            RuleFor(payment => payment.PaymentDate).NotEmpty();
+            RuleFor(payment => payment.Amount).GreaterThan(0);
+        }
+    }
+
 }

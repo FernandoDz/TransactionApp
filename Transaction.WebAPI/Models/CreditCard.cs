@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentValidation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,7 @@ namespace Transaction.WebAPI.Models
         public string HolderLastName { get; set; }
         public int Top_Aux { get; set; }
     }
+
     public class CreditCardResponse
     {
         public string Mensaje { get; set; }

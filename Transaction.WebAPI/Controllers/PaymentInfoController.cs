@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using System.Data;
 using Transaction.WebAPI.Models;
+using Transaction.WebAPI.Services;
 
 namespace Transaction.WebAPI.Controllers
 {
@@ -10,54 +11,31 @@ namespace Transaction.WebAPI.Controllers
     public class PaymentInfoController : Controller
     {
         private readonly string CadenaSQL;
-        public PaymentInfoController(IConfiguration configuration)
+        private readonly PaymentInfoService _paymentInfoService;
+
+        public PaymentInfoController(IConfiguration configuration, PaymentInfoService paymentInfoService)
         {
             CadenaSQL = configuration.GetConnectionString("CadenaSQL");
-
+            _paymentInfoService = paymentInfoService;
         }
 
         [HttpGet]
         [Route("Get/{ClientId:int}")]
         public IActionResult GetById(int ClientId)
         {
-            List<PaymentInfo> list = new List<PaymentInfo>();
+            List<PaymentInfo> paymentInfoList = _paymentInfoService.GetTransactionPaymentInfoByClientId(ClientId);
 
-            try
+            if (paymentInfoList.Count > 0)
             {
-                using (var conexion = new SqlConnection(CadenaSQL))
-                {
-                    conexion.Open();
-
-                    var cmd = new SqlCommand("GetTransactionPaymentInfoByClientId", conexion);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@ClientId", SqlDbType.Int));
-                    cmd.Parameters["@ClientId"].Value = ClientId;
-
-                    using (var rd = cmd.ExecuteReader())
-                    {
-                        while (rd.Read())
-                        {
-                            list.Add(new PaymentInfo
-                            {
-                                Id = Convert.ToInt32(rd["Id"]),
-                                ClientId = Convert.ToInt32(rd["ClientId"]),
-                                CardNumber = rd["CardNumber"].ToString(),
-                                Date = Convert.ToDateTime(rd["Date"]),
-                                Description = rd["Description"].ToString(),
-                                Payment = Convert.ToDecimal(rd["Payment"])
-                            });
-                        }
-                    }
-                }
-
-                return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok", response = list });
+                return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok", response = paymentInfoList });
             }
-            catch (Exception error)
+            else
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { mensaje = error.Message, response = list });
+                return StatusCode(StatusCodes.Status204NoContent, new { mensaje = "No se encontraron detalles de pagos para el cliente proporcionado", response = paymentInfoList });
             }
         }
-
     }
+
 }
+
 

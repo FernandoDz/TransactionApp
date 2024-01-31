@@ -6,6 +6,8 @@ using System;
 using System.Data;
 using System.Data.SqlClient;
 using Transaction.WebAPI.Models;
+using Transaction.WebAPI.Services;
+
 namespace Transaction.WebAPI.Controllers
 {
     [ApiController]
@@ -13,95 +15,44 @@ namespace Transaction.WebAPI.Controllers
     public class StatementController : ControllerBase
     {
         private readonly string CadenaSQL;
+        private readonly StatementService _statementService;
 
-        public StatementController(IConfiguration configuration)
+        public StatementController(IConfiguration configuration, StatementService statementService)
         {
             CadenaSQL = configuration.GetConnectionString("CadenaSQL");
-
+            _statementService = statementService;
         }
 
         [HttpGet]
         [Route("List")]
         public IActionResult Lista()
         {
-            List<Statement> statements = new List<Statement>();
+            List<Statement> statements = _statementService.GetAllStatements();
 
-            try
+            if (statements.Count > 0)
             {
-                using (var conexion = new SqlConnection(CadenaSQL))
-                {
-                    conexion.Open();
-
-                    var cmd = new SqlCommand("usp_GetAllStatements", conexion);
-                    cmd.CommandType = CommandType.StoredProcedure;
-
-                    using (var rd = cmd.ExecuteReader())
-                    {
-                        while (rd.Read())
-                        {
-                            statements.Add(new Statement
-                            {
-                                Id = Convert.ToInt32(rd["Id"]),
-                                ClientId = Convert.ToInt32(rd["ClientId"]),
-                                CardNumber = rd["CardNumber"].ToString(),
-                                CurrentBalance = Convert.ToDecimal(rd["CurrentBalance"]),
-                                CreditLimit = Convert.ToDecimal(rd["CreditLimit"]),
-                                BonifiableInterest = Convert.ToDecimal(rd["BonifiableInterest"]),
-                                AvailableBalance = Convert.ToDecimal(rd["AvailableBalance"])
-                            });
-                        }
-                    }
-                }
                 return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok", response = statements });
             }
-
-            catch (Exception error)
+            else
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { mensaje = error.Message, response = statements });
+                return StatusCode(StatusCodes.Status204NoContent, new { mensaje = "No se encontraron estados de cuenta", response = statements });
             }
         }
+
         [HttpGet]
         [Route("Get/{ClientId:int}")]
         public IActionResult GetById(int ClientId)
         {
-            List<Statement> list = new List<Statement>();
+            List<Statement> statements = _statementService.GetStatementsByClientId(ClientId);
 
-            try
+            if (statements.Count > 0)
             {
-                using (var conexion = new SqlConnection(CadenaSQL))
-                {
-                    conexion.Open();
-
-                    var cmd = new SqlCommand("usp_GetStatementsByClientId", conexion);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@ClientId", SqlDbType.Int));
-                    cmd.Parameters["@ClientId"].Value = ClientId;
-
-                    using (var rd = cmd.ExecuteReader())
-                    {
-                        while (rd.Read())
-                        {
-                            list.Add(new Statement
-                            {
-                                Id = Convert.ToInt32(rd["Id"]),
-                                ClientId = Convert.ToInt32(rd["ClientId"]),
-                                CardNumber = rd["CardNumber"].ToString(),
-                                CurrentBalance = Convert.ToDecimal(rd["CurrentBalance"]),
-                                CreditLimit = Convert.ToDecimal(rd["CreditLimit"]),
-                                BonifiableInterest = Convert.ToDecimal(rd["BonifiableInterest"]),
-                                AvailableBalance = Convert.ToDecimal(rd["AvailableBalance"])
-                            });
-                        }
-                    }
-                }
-
-                return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok", response = list });
+                return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok", response = statements });
             }
-            catch (Exception error)
+            else
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { mensaje = error.Message, response = list });
+                return StatusCode(StatusCodes.Status204NoContent, new { mensaje = "No se encontraron estados de cuenta para el cliente proporcionado", response = statements });
             }
         }
-
     }
 }

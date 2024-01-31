@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using System.Data;
 using Transaction.WebAPI.Models;
+using Transaction.WebAPI.Services;
 
 namespace Transaction.WebAPI.Controllers
 {
@@ -10,54 +11,28 @@ namespace Transaction.WebAPI.Controllers
     public class PurchaseInfoController : Controller
     {
         private readonly string CadenaSQL;
-        public PurchaseInfoController(IConfiguration configuration)
+        private readonly PurchaseInfoService _purchaseInfoService;
+
+        public PurchaseInfoController(IConfiguration configuration, PurchaseInfoService purchaseInfoService)
         {
             CadenaSQL = configuration.GetConnectionString("CadenaSQL");
-
+            _purchaseInfoService = purchaseInfoService;
         }
 
         [HttpGet]
         [Route("Get/{ClientId:int}")]
         public IActionResult GetById(int ClientId)
         {
-            List<PurchaseInfo> list = new List<PurchaseInfo>();
+            List<PurchaseInfo> purchaseInfoList = _purchaseInfoService.GetTransactionInfoByClientId(ClientId);
 
-            try
+            if (purchaseInfoList.Count > 0)
             {
-                using (var conexion = new SqlConnection(CadenaSQL))
-                {
-                    conexion.Open();
-
-                    var cmd = new SqlCommand("GetTransactionInfoByClientId", conexion);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add(new SqlParameter("@ClientId", SqlDbType.Int));
-                    cmd.Parameters["@ClientId"].Value = ClientId;
-
-                    using (var rd = cmd.ExecuteReader())
-                    {
-                        while (rd.Read())
-                        {
-                            list.Add(new PurchaseInfo
-                            {
-                                Id = Convert.ToInt32(rd["Id"]),
-                                ClientId = Convert.ToInt32(rd["ClientId"]),
-                                CardNumber = rd["CardNumber"].ToString(),
-                                AuthorizationNumber = rd["AuthorizationNumber"].ToString(),
-                                Date = Convert.ToDateTime(rd["Date"]),
-                                Description = rd["Description"].ToString(),
-                                Charge = Convert.ToDecimal(rd["Charge"])
-                            });
-                        }
-                    }
-                }
-
-                return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok", response = list });
+                return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok", response = purchaseInfoList });
             }
-            catch (Exception error)
+            else
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { mensaje = error.Message, response = list });
+                return StatusCode(StatusCodes.Status204NoContent, new { mensaje = "No se encontraron detalles de compras para el cliente proporcionado", response = purchaseInfoList });
             }
         }
-
     }
 }

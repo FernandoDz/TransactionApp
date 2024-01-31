@@ -7,11 +7,12 @@ using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
 using System.Globalization;
 
+
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddMudServices();
-
+//configure your URL//
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7106/api/") });
 builder.Services.AddScoped<ICreditCardService, CreditCardService>();
 builder.Services.AddScoped<IStatementService, StatementService>();

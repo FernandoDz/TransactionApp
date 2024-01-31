@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using System.Data;
-
 using Transaction.WebAPI.Models;
+using Transaction.WebAPI.Services;
 
 namespace Transaction.WebAPI.Controllers
 {
@@ -10,91 +8,42 @@ namespace Transaction.WebAPI.Controllers
     [Route("api/[controller]")]
     public class CreditCardController : Controller
     {
+        private readonly CreditCardService _creditCardService;
         private readonly string CadenaSQL;
-        public CreditCardController(IConfiguration configuration)
+        public CreditCardController(IConfiguration configuration, CreditCardService creditCardService)
         {
             CadenaSQL = configuration.GetConnectionString("CadenaSQL");
-
+            _creditCardService = creditCardService;
         }
 
         [HttpGet]
         [Route("List")]
         public IActionResult Lista()
         {
-            List<CreditCard> cards = new List<CreditCard>();
+            List<CreditCard> cards = _creditCardService.GetAllCards();
 
-            try
+            if (cards.Count > 0)
             {
-                using (var conexion = new SqlConnection(CadenaSQL))
-                {
-                    conexion.Open();
-
-                    var cmd = new SqlCommand("usp_GetAllCards", conexion);
-                    cmd.CommandType = CommandType.StoredProcedure;
-
-                    using (var rd = cmd.ExecuteReader())
-                    {
-                        while (rd.Read())
-                        {
-                            cards.Add(new CreditCard
-                            {
-                                Id = Convert.ToInt32(rd["Id"]),
-                                ClientId = Convert.ToInt32(rd["ClientId"]),
-                                Number = rd["Number"].ToString(),
-                                HolderFirstName = rd["HolderFirstName"].ToString(),
-                                HolderLastName = rd["HolderLastName"].ToString(),
-                                Top_Aux = rd["Top_Aux"] != DBNull.Value ? Convert.ToInt32(rd["Top_Aux"]) : 0  
-
-                            });
-                        }
-                    }
-                }
                 return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok", response = cards });
             }
-
-            catch (Exception error)
+            else
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { mensaje = error.Message, response = cards });
+                return StatusCode(StatusCodes.Status204NoContent, new { mensaje = "No se encontraron tarjetas", response = cards });
             }
         }
 
         [HttpPost("Search")]
-
         public IActionResult Search(string cardNumber)
         {
-            List<CreditCard> cards = new List<CreditCard>();
+            List<CreditCard> cards = _creditCardService.SearchCreditCardByNumber(cardNumber);
 
-            try
+            if (cards.Count > 0)
             {
-                using (var conexion = new SqlConnection(CadenaSQL))
-                {
-                    conexion.Open();
-
-                    var cmd = new SqlCommand("usp_SearchCreditCardByNumber", conexion);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@CardNumber", cardNumber);
-
-                    using (var rd = cmd.ExecuteReader())
-                    {
-                        while (rd.Read())
-                        {
-                            cards.Add(new CreditCard
-                            {
-                                Id = Convert.ToInt32(rd["Id"]),
-                                ClientId = Convert.ToInt32(rd["ClientId"]),
-                                Number = rd["Number"].ToString(),
-                                HolderFirstName = rd["HolderFirstName"].ToString(),
-                                HolderLastName = rd["HolderLastName"].ToString(),
-                                Top_Aux = rd["Top_Aux"] != DBNull.Value ? Convert.ToInt32(rd["Top_Aux"]) : 0
-                            });
-                        }
-                    }
-                }
                 return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok", response = cards });
             }
-            catch (Exception error)
+            else
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { mensaje = error.Message, response = cards });
+                return StatusCode(StatusCodes.Status204NoContent, new { mensaje = "No se encontraron tarjetas con el número proporcionado", response = cards });
             }
         }
     }

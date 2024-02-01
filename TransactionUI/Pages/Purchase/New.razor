@@ -1,5 +1,4 @@
-﻿
-@page "/purchase/new"
+﻿@page "/creditcard/purchase/{ClientId:int}"
 @using Models
 @using Services
 @inject IPurchaseService PurchaseService
@@ -15,7 +14,7 @@
                 <MudCard>
                     <MudCardContent>
 
-                        <MudTextField Label="Cliente" @bind-Value="purchase.ClientId" For="@(() => purchase.ClientId)" />
+                        <MudTextField Label="Cliente" @bind-Value="purchase.ClientId" />
                         <MudTextField Label="Número de Tarjeta" @bind-Value="purchase.CardNumber" For="@(() => purchase.CardNumber)" />
                         <MudTextField Label="Fecha de Compra" @bind-Value="purchase.PurchaseDate" For="@(() => purchase.PurchaseDate)" />
                         <MudTextField Label="Descripción" @bind-Value="purchase.Description" For="@(() => purchase.Description)" />
@@ -37,9 +36,15 @@
 </MudGrid>
 
 @code {
+    [Parameter]
+    public int ClientId { get; set; }
     private bool showLeaveAlert = false;
     private Purchase purchase = new Purchase();
-
+    protected override void OnInitialized()
+    {
+        purchase.ClientId = ClientId;
+        base.OnInitialized();
+    }
     private async Task OnValidSubmit(EditContext context)
     {
         await save();

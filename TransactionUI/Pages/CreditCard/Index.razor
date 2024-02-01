@@ -29,9 +29,9 @@
         <MudTd>
             <MudButton Href="@($"/creditcard/statement/{context.Id}")" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Success"
                        Class="text-center">Estado de Cuenta</MudButton>
-            <MudButton OnClick="(() => goAdd(ActionType.RegistrarCompra))" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary"
+            <MudButton Href="@($"/creditcard/purchase/{context.Id}")" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary"
                        Class="text-center">Registrar Compra</MudButton>
-            <MudButton OnClick="(() => goAdd(ActionType.RegistrarPago))" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Secondary"
+            <MudButton Href="@($"/creditcard/payment/{context.Id}")" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Secondary"
                        Class="text-center">Registrar Pago</MudButton>
             <MudButton Href="@($"/creditcard/transaction/{context.Id}")" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Default"
                        Class="text-center">Transacciones</MudButton>
@@ -96,7 +96,7 @@
         {
 
             case ActionType.RegistrarCompra:
-                NavigationManager.NavigateTo("purchase/new");
+                NavigationManager.NavigateTo("creditcard/payment");
                 break;
             case ActionType.RegistrarPago:
                 NavigationManager.NavigateTo("payment/new");

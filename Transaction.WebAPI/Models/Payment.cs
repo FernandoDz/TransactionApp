@@ -12,14 +12,13 @@ namespace Transaction.WebAPI.Models
         public int Id { get; set; }
         public int ClientId { get; set; }
         public string CardNumber { get; set; }
-        public DateTime  PaymentDate { get; set; }
+        public DateTime PaymentDate { get; set; }
         public decimal Amount { get; set; }
         public Payment()
         {
             PaymentDate = DateTime.Now;
         }
     }
-    
 
     public class PaymentValidator : AbstractValidator<Payment>
     {

@@ -6,7 +6,7 @@ API diseñada para gestionar transacciones financieras como tarjetas de crédito
 
 ### CreditCard
 
-**GET /api/CreditCard/List**
+```**GET /api/CreditCard/List**
 - Obtiene la lista de tarjetas de crédito.
 
 **POST /api/CreditCard/Search**
@@ -45,7 +45,7 @@ API diseñada para gestionar transacciones financieras como tarjetas de crédito
 
 **GET /api/Statement/Get/{ClientId}**
 - Obtiene el estado de cuenta de un cliente por su ID.
-
+```
 ## Uso
 
 Para utilizar la API, realiza solicitudes HTTP a los endpoints mencionados, proporcionando los datos necesarios en el cuerpo de la solicitud (para métodos POST) o como parámetros de la URL.

@@ -19,6 +19,7 @@ namespace Transaction.WebAPI.Models
         public string Month { get; set; }
 
     }
+   
     public class PurchaseValidator : AbstractValidator<Purchase>
     {
         public PurchaseValidator()

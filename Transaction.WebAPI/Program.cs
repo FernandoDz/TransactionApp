@@ -1,7 +1,9 @@
 
 
 using Transaction.WebAPI.Models;
+using AutoMapper;
 using Transaction.WebAPI.Services;
+using Microsoft.AspNetCore.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -18,6 +20,11 @@ builder.Services.AddScoped<StatementService>();
 
 builder.Services.AddScoped<PaymentValidator>();
 builder.Services.AddScoped<PurchaseValidator>();
+
+//automapper
+
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddControllersWithViews();
 
 builder.Services.AddCors(options =>
 {

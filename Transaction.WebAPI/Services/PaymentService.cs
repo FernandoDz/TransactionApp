@@ -11,7 +11,8 @@ namespace Transaction.WebAPI.Services
 
         public PaymentService(IConfiguration configuration , ILogger<PaymentService> logger )
         {
-            _connectionString = configuration.GetConnectionString("CadenaSQL");            _logger = logger;
+            _connectionString = configuration.GetConnectionString("CadenaSQL");
+            _logger = logger;
 
         }
 

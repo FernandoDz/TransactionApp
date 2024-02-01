@@ -16,4 +16,5 @@ namespace Transaction.WebAPI.Models
         public string Description { get; set; }
         public decimal Charge { get; set; }
     }
+   
 }

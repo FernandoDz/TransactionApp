@@ -19,6 +19,8 @@ namespace Transaction.WebAPI.Models
             PaymentDate = DateTime.Now;
         }
     }
+    
+
     public class PaymentValidator : AbstractValidator<Payment>
     {
         public PaymentValidator()

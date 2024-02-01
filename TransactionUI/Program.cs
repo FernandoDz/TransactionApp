@@ -2,8 +2,6 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using TransactionUI;
 using TransactionUI.Services;
-
-using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
 using System.Globalization;
 

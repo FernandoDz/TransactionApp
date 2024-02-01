@@ -6,7 +6,7 @@ API diseñada para gestionar transacciones financieras como tarjetas de crédito
 
 ### CreditCard
 
-```**GET /api/CreditCard/List**
+```**GET /api/CreditCard/List**```
 - Obtiene la lista de tarjetas de crédito.
 
 **POST /api/CreditCard/Search**
